@@ -41,11 +41,14 @@ class robot_simulated(Thread):
 
 
 
-
+#this is the request handler thread, created each time client makes request
+#and then handles that request
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self): #Handles the message
-        bot_ID = RX_FIFO[(str(self.request.recv(1024), 'ascii'))])
+
+        #put data revieved from client into the RX FIFO 
+        bot_ID = RX_FIFO[(str(self.request.recv(1024), 'ascii'))] 
 
 
         #bot send time, GPS data, status
@@ -54,34 +57,26 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         
         
-        
-        response = bytes("data recieved", 'ascii')
-        self.request.sendall(response)
+        #send recieved confirmation back to client
+        response = bytes("data recieved", 'ascii') #create response
+        self.request.sendall(response) #send response
 
         
 
 
-
+#create the threaded server, this server create a request handler thread every
+#time a client makes a request
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         pass
 
     
-##    def setup_attributes(self):
-##        #this section sets up the server's attributes
-##        self.pos1 = 0;
-##        self.pos2 = 0;
-##        self.pos3 = 0;
-##        
-##        
-##        pass
-    
 
 def client(ip, port, message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((ip, port))
-        sock.sendall(bytes(message, 'ascii'))
-        response = str(sock.recv(1024), 'ascii')
-        print("Received: {}".format(response))
+        sock.connect((ip, port))                 #connect to server at IP
+        sock.sendall(bytes(message, 'ascii'))    #send message
+        response = str(sock.recv(1024), 'ascii') #read back response
+        print("Received: {}".format(response))   #print recieved data
 
 if __name__ == "__main__":
     
@@ -105,10 +100,11 @@ if __name__ == "__main__":
         server_thread.daemon = True
         server_thread.start()
         print("Server loop running in thread:", server_thread.name)
+
         
-        client(ip, port, "bot1")
-        client(ip, port, "bot2")
-        client(ip, port, "bot3")
+        client(ip, port, "bot1") #bot 1  
+        client(ip, port, "bot2") #bot 2 
+        client(ip, port, "bot3") #bot 3
 
 
         print("oh my there batman")
