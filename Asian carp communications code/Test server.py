@@ -41,14 +41,14 @@ class robot_simulated(Thread):
 
 
 
-#this is the request handler thread, created each time client makes request
-#and then handles that request
+
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self): #Handles the message
 
-        #put data revieved from client into the RX FIFO 
-        bot_ID = RX_FIFO[(str(self.request.recv(1024), 'ascii'))] 
+        message_from_client = str(self.request.recv(1024), 'ascii')
+        #print(message_from_client)
+        #bot_ID = RX_FIFO[str(message_from_client), 'ascii']
 
 
         #bot send time, GPS data, status
@@ -57,39 +57,33 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         
         
-        #send recieved confirmation back to client
-        response = bytes("data recieved", 'ascii') #create response
-        self.request.sendall(response) #send response
+        #print('connected to:' + str(bot_ID))
+        response = bytes(("hello " + message_from_client), 'ascii')
+        self.request.sendall(response)
 
         
 
 
-#create the threaded server, this server create a request handler thread every
-#time a client makes a request
+
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-        pass
+        pass    
 
-    
-
-def client(ip, port, message):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((ip, port))                 #connect to server at IP
-        sock.sendall(bytes(message, 'ascii'))    #send message
-        response = str(sock.recv(1024), 'ascii') #read back response
-        print("Received: {}".format(response))   #print recieved data
 
 if __name__ == "__main__":
     
     # Port 0 means to select an arbitrary unused port
-    HOST, PORT = "localhost", 0
+    hostname = socket.gethostname() #get host name
+    HOST, PORT = socket.gethostbyname(hostname), 5001 #get host ip and choose arbitrary port
 
     server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+    print(HOST)
     
-
 
     
     
     with server:
+
+        
         ip, port = server.server_address
 
         # Start a thread with the server -- that thread will then start one
@@ -101,11 +95,17 @@ if __name__ == "__main__":
         server_thread.start()
         print("Server loop running in thread:", server_thread.name)
 
+        #main loop
+        i = 0
+        while True:
+            try:
+                print('waiting') #gotta do something
+
+            except Exception as e:
+                print (e)
+                
+                server.shutdown() #safely handle the server's shutdown
+                break
+
         
-        client(ip, port, "bot1") #bot 1  
-        client(ip, port, "bot2") #bot 2 
-        client(ip, port, "bot3") #bot 3
-
-
-        print("oh my there batman")
-        server.shutdown()
+        
