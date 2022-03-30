@@ -1,0 +1,13 @@
+
+
+%sound(data, fs, 16);
+[pxx,f] = periodogram(relNums,[],[],1);
+
+plot(f,10*log10(pxx))
+xlabel('Cycles/Year')
+ylabel('dB / (Cycles/Year)')
+title('Periodogram of Relative Sunspot Number Data')
+
+L_Channel = data(:,1);
+s = spectrogram(L_Channel); 
+%s = spectrogram(data[1])
